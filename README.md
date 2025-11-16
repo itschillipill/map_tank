@@ -1,16 +1,33 @@
-# map_tanks
+# Tank RenderObject Demo
 
-A new Flutter project.
+- A high-performance Flutter demo showcasing custom animation and rendering using a custom RenderObject.
+The project implements a simple tank scene with:
 
-## Getting Started
+- Direct RenderObject-based drawing for maximum performance
 
-This project is a starting point for a Flutter application.
+- Tap-to-shoot mechanics
 
-A few resources to get you started if this is your first Flutter project:
+- Bullet spawning
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- Smooth animations without widgets
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Performance profiling via Flutter DevTools
+
+This project is intended as an experiment in writing low-level, optimized graphics in Flutter.
+
+## Features
+
+1. Custom RenderBox for tanks and bullets
+
+2. No widgets for rendering — everything drawn with Canvas
+
+3. Frame-accurate movement updates
+
+4. Handles thousands of objects with minimal lag
+
+5. Suitable for studying Flutter’s rendering pipeline
+
+Getting Started
+```bash
+flutter run
+```
