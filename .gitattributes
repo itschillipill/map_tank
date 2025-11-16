@@ -1,5 +1,2 @@
-lib/** linguist-language=Dart
-bin/** linguist-language=Dart
-windows/** linguist-language=C++
-linux/** linguist-language=C++
-macos/** linguist-language=C++
+*.cpp linguist-vendored
+*.h linguist-vendored
