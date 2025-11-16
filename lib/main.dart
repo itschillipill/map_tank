@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'src/tanks_map.dart';
+import 'src/v1/tanks_map.dart' as v1;
 
 void main() {
   runApp(
@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const TanksMap()),
+                  MaterialPageRoute(builder: (context) => const v1.TanksMap()),
                 );
               },
               child: const Text("Start Game"),

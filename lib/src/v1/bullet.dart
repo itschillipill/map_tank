@@ -10,7 +10,7 @@ class Bullet {
   Bullet({
     required this.position,
     required this.target,
-    this.flightTimeMs = 600,
+    this.flightTimeMs = 400,
   });
 
   void update(double dt) {

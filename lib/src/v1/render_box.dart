@@ -18,7 +18,7 @@ class RenderTanksLayer extends RenderBox {
   final List<Bullet> _bullets = [];
   final List<Explosion> _explosions = [];
   final ui.Image sprite;
-  final Size tankSize = const Size(35, 55);
+  final Size tankSize = const Size(25, 40);
   final Paint tankPaint = Paint();
   final Paint explosionPainter = Paint()..style = PaintingStyle.fill;
 
@@ -38,6 +38,12 @@ class RenderTanksLayer extends RenderBox {
     ticker = vsync.createTicker(_onTick);
 
     _mapController.mapEventStream.listen((event) {
+      if (event is MapEventTap) {
+        final tapPos = _mapController.camera.getOffsetFromOrigin(
+          event.tapPosition,
+        );
+        handleTap(tapPos);
+      }
       markNeedsPaint();
     });
   }
@@ -120,8 +126,7 @@ class RenderTanksLayer extends RenderBox {
     size = constraints.biggest;
   }
 
-  void handleTap(PointerDownEvent event) {
-    final tapPos = event.localPosition;
+  void handleTap(Offset tapPos) {
     bool hitEnemy = false;
 
     for (final t in _enemyTanks) {
@@ -143,6 +148,12 @@ class RenderTanksLayer extends RenderBox {
       final latlng = _mapController.camera.offsetToCrs(tapPos);
       shootBullet(latlng);
     }
+  }
+
+  @override
+  void dispose() {
+    ticker.dispose();
+    super.dispose();
   }
 
   void drawTank(Tank t, {Offset offset = Offset.zero, required Canvas canvas}) {

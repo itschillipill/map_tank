@@ -47,13 +47,6 @@ class _TanksMapState extends State<TanksMap> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  void handleTap(PointerDownEvent event) {
-    final renderBox =
-        _tanksLayerKey.currentContext?.findRenderObject() as RenderTanksLayer?;
-    if (renderBox == null) return;
-    renderBox.handleTap(event);
-  }
-
   Future<ui.Image> loadUiImage(String assetPath) async {
     final data = await rootBundle.load(assetPath);
     final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
@@ -65,7 +58,6 @@ class _TanksMapState extends State<TanksMap> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Map Tanks")),
-      drawer: const Drawer(),
       body: Stack(
         children: <Widget>[
           RepaintBoundary(
@@ -76,27 +68,32 @@ class _TanksMapState extends State<TanksMap> with TickerProviderStateMixin {
                 initialZoom: 5,
                 minZoom: 3,
                 maxZoom: 20,
-              ),
-              children: <Widget>[openStreetMapTileLayer],
-            ),
-          ),
-          if (sprite != null)
-            Positioned.fill(
-              child: Listener(
-                behavior: HitTestBehavior.translucent,
-                onPointerDown: handleTap,
-                child: RepaintBoundary(
-                  child: TanksLayer(
-                    key: _tanksLayerKey,
-                    mapController: mapController,
-                    palyerTank: playerTank,
-                    tanks: tanks,
-                    vsync: this,
-                    sprite: sprite!,
-                  ),
+                interactionOptions: InteractionOptions(
+                  flags: InteractiveFlag.all ^ InteractiveFlag.rotate,
+                  rotationThreshold: 9999,
                 ),
               ),
+              children: <Widget>[
+                openStreetMapTileLayer,
+                if (sprite != null)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: RepaintBoundary(
+                        child: TanksLayer(
+                          key: _tanksLayerKey,
+                          mapController: mapController,
+                          palyerTank: playerTank,
+                          tanks: tanks,
+                          vsync: this,
+                          sprite: sprite!,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
+          ),
+
           Positioned(
             right: 10,
             top: 20,
