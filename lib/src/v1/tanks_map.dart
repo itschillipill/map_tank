@@ -70,7 +70,6 @@ class _TanksMapState extends State<TanksMap> with TickerProviderStateMixin {
                 maxZoom: 20,
                 interactionOptions: InteractionOptions(
                   flags: InteractiveFlag.all ^ InteractiveFlag.rotate,
-                  rotationThreshold: 9999,
                 ),
               ),
               children: <Widget>[
@@ -185,7 +184,7 @@ TileLayer get openStreetMapTileLayer => TileLayer(
   userAgentPackageName: 'dev.fleaflet.flutter_map.example',
   tileProvider: NetworkTileProvider(httpClient: httpClient),
 );
-
+   
 class Tank {
   final LatLng position;
   final bool isMine;

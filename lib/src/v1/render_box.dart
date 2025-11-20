@@ -18,7 +18,7 @@ class RenderTanksLayer extends RenderBox {
   final List<Bullet> _bullets = [];
   final List<Explosion> _explosions = [];
   final ui.Image sprite;
-  final Size tankSize = const Size(25, 40);
+  final Size tankSize = const Size(40, 40);
   final Paint tankPaint = Paint();
   final Paint explosionPainter = Paint()..style = PaintingStyle.fill;
 
