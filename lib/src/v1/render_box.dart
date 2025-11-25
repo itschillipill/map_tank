@@ -7,7 +7,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'bullet.dart';
-import 'tanks_map.dart';
+import 'tank.dart';
 
 class RenderTanksLayer extends RenderBox {
   MapController _mapController;
@@ -17,8 +17,8 @@ class RenderTanksLayer extends RenderBox {
   late final Ticker ticker;
   final List<Bullet> _bullets = [];
   final List<Explosion> _explosions = [];
-  final ui.Image sprite;
-  final Size tankSize = const Size(40, 40);
+  final TankSprite sprite;
+  final Size tankSize = const Size.square(40);
   final Paint tankPaint = Paint();
   final Paint explosionPainter = Paint()..style = PaintingStyle.fill;
 
@@ -69,7 +69,7 @@ class RenderTanksLayer extends RenderBox {
       return;
     }
 
-    const dt = 1 / 60.0;
+    const dt = 1 / 30.0;
     for (final b in _bullets) {
       b.update(dt);
     }
@@ -157,13 +157,14 @@ class RenderTanksLayer extends RenderBox {
   }
 
   void drawTank(Tank t, {Offset offset = Offset.zero, required Canvas canvas}) {
+    ui.Image sprt = t.isMine ? sprite.$1 : sprite.$2;
     final pixel = _mapController.camera.getOffsetFromOrigin(t.position);
 
     final srcRect = Rect.fromLTWH(
       0,
       0,
-      sprite.width.toDouble(),
-      sprite.height.toDouble(),
+      sprt.width.toDouble(),
+      sprt.height.toDouble(),
     );
 
     canvas.save();
@@ -178,7 +179,7 @@ class RenderTanksLayer extends RenderBox {
       width: tankSize.width,
       height: tankSize.height,
     );
-    canvas.drawImageRect(sprite, srcRect, dstRect, tankPaint);
+    canvas.drawImageRect(sprt, srcRect, dstRect, tankPaint);
     canvas.restore();
   }
 
