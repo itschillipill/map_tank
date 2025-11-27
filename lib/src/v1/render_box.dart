@@ -17,7 +17,7 @@ class RenderTanksLayer extends RenderBox {
   late final Ticker ticker;
   final List<Bullet> _bullets = [];
   final List<Explosion> _explosions = [];
-  final TankSprite sprite;
+  final TankSprite tanksSprite;
   final Size tankSize = const Size.square(40);
   final Paint tankPaint = Paint();
   final Paint explosionPainter = Paint()..style = PaintingStyle.fill;
@@ -33,7 +33,7 @@ class RenderTanksLayer extends RenderBox {
     this._enemyTanks,
     this._playerTank, {
     required this.vsync,
-    required this.sprite,
+    required this.tanksSprite,
   }) {
     ticker = vsync.createTicker(_onTick);
 
@@ -69,17 +69,18 @@ class RenderTanksLayer extends RenderBox {
       return;
     }
 
+    /// обновления позиции в секунду
     const dt = 1 / 30.0;
-    for (final b in _bullets) {
-      b.update(dt);
+    for (final bullet in _bullets) {
+      bullet.update(dt);
     }
     final finishedBullets = _bullets.where((b) => b.finished).toList();
 
-    for (final b in finishedBullets) {
-      removeBullet(b);
+    for (final bullet in finishedBullets) {
+      removeBullet(bullet);
     }
-    for (final e in _explosions) {
-      e.update(dt);
+    for (final explosion in _explosions) {
+      explosion.update(dt);
     }
 
     _explosions.removeWhere((e) => e.finished);
@@ -157,14 +158,14 @@ class RenderTanksLayer extends RenderBox {
   }
 
   void drawTank(Tank t, {Offset offset = Offset.zero, required Canvas canvas}) {
-    ui.Image sprt = t.isMine ? sprite.$1 : sprite.$2;
+    ui.Image sprite = t.isMine ? tanksSprite.$1 : tanksSprite.$2;
     final pixel = _mapController.camera.getOffsetFromOrigin(t.position);
 
     final srcRect = Rect.fromLTWH(
       0,
       0,
-      sprt.width.toDouble(),
-      sprt.height.toDouble(),
+      sprite.width.toDouble(),
+      sprite.height.toDouble(),
     );
 
     canvas.save();
@@ -179,7 +180,7 @@ class RenderTanksLayer extends RenderBox {
       width: tankSize.width,
       height: tankSize.height,
     );
-    canvas.drawImageRect(sprt, srcRect, dstRect, tankPaint);
+    canvas.drawImageRect(sprite, srcRect, dstRect, tankPaint);
     canvas.restore();
   }
 

@@ -39,12 +39,13 @@ class _TanksMapState extends State<TanksMap> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     mapController = MapController();
-    loadUiImage(
-      myTankAsset: Constants.myTankImageAsset,
-      enemyTankAsset: Constants.enemyTankImageAsset,
-    ).then((sprt) {
-      setState(() => sprite = sprt);
-    });
+    $loadSprites();
+  }
+
+  void $loadSprites() async {
+    final myTank = await loadUiImage(asset: Constants.myTankImageAsset);
+    final enemyTank = await loadUiImage(asset: Constants.enemyTankImageAsset);
+    setState(() => sprite = (myTank, enemyTank));
   }
 
   @override
@@ -59,19 +60,11 @@ class _TanksMapState extends State<TanksMap> with TickerProviderStateMixin {
     });
   }
 
-  Future<TankSprite> loadUiImage({
-    required String myTankAsset,
-    required String enemyTankAsset,
-  }) async {
-    final data = await rootBundle.load(myTankAsset);
+  Future<ui.Image> loadUiImage({required String asset}) async {
+    final data = await rootBundle.load(asset);
     final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
     final frame = await codec.getNextFrame();
-    final myTank = frame.image;
-    final data2 = await rootBundle.load(enemyTankAsset);
-    final codec2 = await ui.instantiateImageCodec(data2.buffer.asUint8List());
-    final frame2 = await codec2.getNextFrame();
-    final enemyTank = frame2.image;
-    return (myTank, enemyTank);
+    return frame.image;
   }
 
   @override
@@ -79,7 +72,7 @@ class _TanksMapState extends State<TanksMap> with TickerProviderStateMixin {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "Танки на карте",
+          Constants.appName,
           style: TextStyle(color: Colors.white),
         ),
         iconTheme: IconThemeData(color: Colors.white),
@@ -131,7 +124,7 @@ class _TanksMapState extends State<TanksMap> with TickerProviderStateMixin {
               crossAxisAlignment: CrossAxisAlignment.end,
               spacing: 16,
               children: [
-                MyButton(
+                CustomButton(
                   heroTag: "zoom_in",
                   onPressed: () {
                     mapController.move(
@@ -142,7 +135,7 @@ class _TanksMapState extends State<TanksMap> with TickerProviderStateMixin {
                   icon: Icons.add,
                 ),
 
-                MyButton(
+                CustomButton(
                   heroTag: "zoom_out",
                   onPressed: () {
                     mapController.move(
@@ -153,7 +146,7 @@ class _TanksMapState extends State<TanksMap> with TickerProviderStateMixin {
                   icon: Icons.remove,
                 ),
 
-                MyButton(
+                CustomButton(
                   heroTag: "my_location",
                   onPressed: () {
                     mapController.move(
@@ -195,7 +188,7 @@ class TanksLayer extends LeafRenderObjectWidget {
       tanks,
       palyerTank,
       vsync: vsync,
-      sprite: sprite,
+      tanksSprite: sprite,
     );
   }
 

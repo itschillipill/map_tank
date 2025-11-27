@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-class MyButton extends StatelessWidget {
+class CustomButton extends StatelessWidget {
   final VoidCallback onPressed;
   final IconData icon;
   final String heroTag;
-  const MyButton({
+  const CustomButton({
     super.key,
     required this.onPressed,
     required this.icon,

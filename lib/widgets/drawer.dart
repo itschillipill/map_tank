@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:map_tanks/constants.dart';
+import 'package:map_tanks/widgets/menu_list_tile.dart';
 
 class AppDrawer extends StatelessWidget {
   final int? selectedIndex;
@@ -27,7 +28,7 @@ class AppDrawer extends StatelessWidget {
                     radius: 30,
                     backgroundImage: AssetImage(Constants.profilePictureAsset),
                   ),
-                  Text(
+                  const Text(
                     "Войти в приложение",
                     style: TextStyle(color: Colors.white),
                   ),
@@ -45,36 +46,12 @@ class AppDrawer extends StatelessWidget {
                   ),
                   ListView.builder(
                     itemCount: drawerItems.length,
-                    itemBuilder: (context, index) {
-                      final item = drawerItems[index];
-                      return ListTile(
-                        contentPadding: EdgeInsets.all(4),
-                        tileColor:
-                            selectedIndex == index
-                                ? Colors.grey.shade700
-                                : null,
-                        leading: Icon(
-                          item.$1,
-                          color:
-                              selectedIndex == index
-                                  ? Colors.green
-                                  : Colors.white,
+                    itemBuilder:
+                        (context, index) => MenuListTile(
+                          onTap: () => onItemTapped(index),
+                          item: drawerItems[index],
+                          isSelected: selectedIndex == index,
                         ),
-                        title: Text(
-                          item.$2,
-                          style: TextStyle(
-                            color:
-                                selectedIndex == index
-                                    ? Colors.green
-                                    : Colors.white,
-                          ),
-                        ),
-                        onTap: () {
-                          onItemTapped(index);
-                          Navigator.pop(context);
-                        },
-                      );
-                    },
                     shrinkWrap: true,
                   ),
                 ],
