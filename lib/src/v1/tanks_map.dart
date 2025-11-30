@@ -4,9 +4,13 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:http/http.dart';
 import 'package:http/retry.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:map_tanks/constants.dart';
+import 'package:map_tanks/widgets/button.dart';
+import 'package:map_tanks/widgets/drawer.dart';
 import 'dart:ui' as ui;
 
 import 'render_box.dart';
+import 'tank.dart';
 
 class TanksMap extends StatefulWidget {
   const TanksMap({super.key});
@@ -17,8 +21,9 @@ class TanksMap extends StatefulWidget {
 
 class _TanksMapState extends State<TanksMap> with TickerProviderStateMixin {
   late final MapController mapController;
+  int? _selectedIndex;
   final _tanksLayerKey = GlobalKey();
-  ui.Image? sprite;
+  TankSprite? sprite;
   final Tank playerTank = Tank(
     position: const LatLng(41.0082, 28.9784),
     isMine: true,
@@ -34,11 +39,13 @@ class _TanksMapState extends State<TanksMap> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     mapController = MapController();
-    loadUiImage('assets/images/tank.png').then((img) {
-      setState(() {
-        sprite = img;
-      });
-    });
+    $loadSprites();
+  }
+
+  void $loadSprites() async {
+    final myTank = await loadUiImage(asset: Constants.myTankImageAsset);
+    final enemyTank = await loadUiImage(asset: Constants.enemyTankImageAsset);
+    setState(() => sprite = (myTank, enemyTank));
   }
 
   @override
@@ -47,15 +54,14 @@ class _TanksMapState extends State<TanksMap> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  void handleTap(PointerDownEvent event) {
-    final renderBox =
-        _tanksLayerKey.currentContext?.findRenderObject() as RenderTanksLayer?;
-    if (renderBox == null) return;
-    renderBox.handleTap(event);
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
-  Future<ui.Image> loadUiImage(String assetPath) async {
-    final data = await rootBundle.load(assetPath);
+  Future<ui.Image> loadUiImage({required String asset}) async {
+    final data = await rootBundle.load(asset);
     final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
     final frame = await codec.getNextFrame();
     return frame.image;
@@ -64,8 +70,18 @@ class _TanksMapState extends State<TanksMap> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Map Tanks")),
-      drawer: const Drawer(),
+      appBar: AppBar(
+        title: const Text(
+          Constants.appName,
+          style: TextStyle(color: Colors.white),
+        ),
+        iconTheme: IconThemeData(color: Colors.white),
+        backgroundColor: Colors.green,
+      ),
+      drawer: AppDrawer(
+        selectedIndex: _selectedIndex,
+        onItemTapped: _onItemTapped,
+      ),
       body: Stack(
         children: <Widget>[
           RepaintBoundary(
@@ -76,27 +92,31 @@ class _TanksMapState extends State<TanksMap> with TickerProviderStateMixin {
                 initialZoom: 5,
                 minZoom: 3,
                 maxZoom: 20,
-              ),
-              children: <Widget>[openStreetMapTileLayer],
-            ),
-          ),
-          if (sprite != null)
-            Positioned.fill(
-              child: Listener(
-                behavior: HitTestBehavior.translucent,
-                onPointerDown: handleTap,
-                child: RepaintBoundary(
-                  child: TanksLayer(
-                    key: _tanksLayerKey,
-                    mapController: mapController,
-                    palyerTank: playerTank,
-                    tanks: tanks,
-                    vsync: this,
-                    sprite: sprite!,
-                  ),
+                interactionOptions: InteractionOptions(
+                  flags: InteractiveFlag.all ^ InteractiveFlag.rotate,
                 ),
               ),
+              children: <Widget>[
+                openStreetMapTileLayer,
+                if (sprite != null)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: RepaintBoundary(
+                        child: TanksLayer(
+                          key: _tanksLayerKey,
+                          mapController: mapController,
+                          palyerTank: playerTank,
+                          tanks: tanks,
+                          vsync: this,
+                          sprite: sprite!,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
+          ),
+
           Positioned(
             right: 10,
             top: 20,
@@ -104,7 +124,7 @@ class _TanksMapState extends State<TanksMap> with TickerProviderStateMixin {
               crossAxisAlignment: CrossAxisAlignment.end,
               spacing: 16,
               children: [
-                FloatingActionButton.small(
+                CustomButton(
                   heroTag: "zoom_in",
                   onPressed: () {
                     mapController.move(
@@ -112,10 +132,10 @@ class _TanksMapState extends State<TanksMap> with TickerProviderStateMixin {
                       mapController.camera.zoom + 0.5,
                     );
                   },
-                  child: const Icon(Icons.add),
+                  icon: Icons.add,
                 ),
 
-                FloatingActionButton.small(
+                CustomButton(
                   heroTag: "zoom_out",
                   onPressed: () {
                     mapController.move(
@@ -123,10 +143,10 @@ class _TanksMapState extends State<TanksMap> with TickerProviderStateMixin {
                       mapController.camera.zoom - 0.5,
                     );
                   },
-                  child: const Icon(Icons.remove),
+                  icon: Icons.remove,
                 ),
 
-                FloatingActionButton.small(
+                CustomButton(
                   heroTag: "my_location",
                   onPressed: () {
                     mapController.move(
@@ -134,7 +154,7 @@ class _TanksMapState extends State<TanksMap> with TickerProviderStateMixin {
                       mapController.camera.zoom,
                     );
                   },
-                  child: const Icon(Icons.my_location_outlined),
+                  icon: Icons.my_location_outlined,
                 ),
               ],
             ),
@@ -150,7 +170,7 @@ class TanksLayer extends LeafRenderObjectWidget {
   final List<Tank> tanks;
   final Tank palyerTank;
   final TickerProvider vsync;
-  final ui.Image sprite;
+  final TankSprite sprite;
 
   const TanksLayer({
     required this.mapController,
@@ -168,7 +188,7 @@ class TanksLayer extends LeafRenderObjectWidget {
       tanks,
       palyerTank,
       vsync: vsync,
-      sprite: sprite,
+      tanksSprite: sprite,
     );
   }
 
@@ -188,11 +208,3 @@ TileLayer get openStreetMapTileLayer => TileLayer(
   userAgentPackageName: 'dev.fleaflet.flutter_map.example',
   tileProvider: NetworkTileProvider(httpClient: httpClient),
 );
-
-class Tank {
-  final LatLng position;
-  final bool isMine;
-  double angle;
-
-  Tank({required this.position, this.isMine = false, this.angle = 0.0});
-}

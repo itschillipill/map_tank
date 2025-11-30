@@ -7,7 +7,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'bullet.dart';
-import 'tanks_map.dart';
+import 'tank.dart';
 
 class RenderTanksLayer extends RenderBox {
   MapController _mapController;
@@ -17,8 +17,8 @@ class RenderTanksLayer extends RenderBox {
   late final Ticker ticker;
   final List<Bullet> _bullets = [];
   final List<Explosion> _explosions = [];
-  final ui.Image sprite;
-  final Size tankSize = const Size(35, 55);
+  final TankSprite tanksSprite;
+  final Size tankSize = const Size.square(40);
   final Paint tankPaint = Paint();
   final Paint explosionPainter = Paint()..style = PaintingStyle.fill;
 
@@ -33,11 +33,17 @@ class RenderTanksLayer extends RenderBox {
     this._enemyTanks,
     this._playerTank, {
     required this.vsync,
-    required this.sprite,
+    required this.tanksSprite,
   }) {
     ticker = vsync.createTicker(_onTick);
 
     _mapController.mapEventStream.listen((event) {
+      if (event is MapEventTap) {
+        final tapPos = _mapController.camera.getOffsetFromOrigin(
+          event.tapPosition,
+        );
+        handleTap(tapPos);
+      }
       markNeedsPaint();
     });
   }
@@ -63,17 +69,18 @@ class RenderTanksLayer extends RenderBox {
       return;
     }
 
-    const dt = 1 / 60.0;
-    for (final b in _bullets) {
-      b.update(dt);
+    /// обновления позиции в секунду
+    const dt = 1 / 30.0;
+    for (final bullet in _bullets) {
+      bullet.update(dt);
     }
     final finishedBullets = _bullets.where((b) => b.finished).toList();
 
-    for (final b in finishedBullets) {
-      removeBullet(b);
+    for (final bullet in finishedBullets) {
+      removeBullet(bullet);
     }
-    for (final e in _explosions) {
-      e.update(dt);
+    for (final explosion in _explosions) {
+      explosion.update(dt);
     }
 
     _explosions.removeWhere((e) => e.finished);
@@ -120,8 +127,7 @@ class RenderTanksLayer extends RenderBox {
     size = constraints.biggest;
   }
 
-  void handleTap(PointerDownEvent event) {
-    final tapPos = event.localPosition;
+  void handleTap(Offset tapPos) {
     bool hitEnemy = false;
 
     for (final t in _enemyTanks) {
@@ -145,7 +151,14 @@ class RenderTanksLayer extends RenderBox {
     }
   }
 
+  @override
+  void dispose() {
+    ticker.dispose();
+    super.dispose();
+  }
+
   void drawTank(Tank t, {Offset offset = Offset.zero, required Canvas canvas}) {
+    ui.Image sprite = t.isMine ? tanksSprite.$1 : tanksSprite.$2;
     final pixel = _mapController.camera.getOffsetFromOrigin(t.position);
 
     final srcRect = Rect.fromLTWH(
